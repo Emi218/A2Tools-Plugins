@@ -743,13 +743,14 @@ setInterval(() => {
   const now = Date.now();
   let any = false;
   for (const [g, c] of live.cd) {
-    // Announce skill cooldowns when one second remains (250ms polling).
-    if (c.end - now > 1000 || now - c.end > 3000) continue;
+    // Per-skill alert lead time in seconds (250ms polling).
+    const o = mine.skills[g];
+    const leadMs = Math.max(0, Math.min(60, Number(o?.alertLead ?? 1))) * 1000;
+    if (c.end - now > leadMs || now - c.end > 3000) continue;
     const key = `g:${g}:${c.end}`;
     if (alerted.has(key)) continue;
     alerted.add(key);
     any = true;
-    const o = mine.skills[g];
     if (o?.sound) ding();
     if (o?.voice) speak(skillName(g) + " レディー", (SKILLS.get(g)?.n?.en || skillName(g)) + " Ready");
   }
@@ -865,6 +866,28 @@ function check(text, on, change) {
   return label;
 }
 
+function secondsSetting(text, value, change) {
+  const label = document.createElement("label");
+  label.className = "opt";
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = "0";
+  input.max = "60";
+  input.step = "0.1";
+  input.value = String(value);
+  input.style.width = "64px";
+  input.setAttribute("aria-label", text);
+  input.addEventListener("click", (e) => e.stopPropagation());
+  input.addEventListener("change", () => {
+    const n = Number(input.value);
+    const safe = Number.isFinite(n) ? Math.max(0, Math.min(60, n)) : 1;
+    input.value = String(safe);
+    change(safe);
+  });
+  label.append(text, " ", input, " 秒前");
+  return label;
+}
+
 // One skill or buff: its icon, name and time, a show switch; a click opens its
 // options under it.
 function row({ id, icon, name, time, timeTitle, shown, onShow, options }) {
@@ -928,6 +951,7 @@ function renderSkills() {
           check(words.optAlways, o.always, (v) => set("always", v)),
           check(words.optSound, o.sound, (v) => set("sound", v)),
           check(words.optVoice, o.voice, (v) => set("voice", v)),
+          secondsSetting("通知タイミング", o.alertLead ?? 1, (v) => set("alertLead", v)),
         ],
       });
     }),
