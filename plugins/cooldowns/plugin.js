@@ -688,7 +688,9 @@ let voicevoxBusy = false;
 const voicevoxStop = () => { voicevoxQueue.length = 0; try { voicevoxContext?.close(); } catch {} voicevoxContext = null; voicevoxBusy = false; };
 async function playVoicevox(text, speaker) {
   if (!text || !speaker) return;
-  voicevoxQueue.push({ engine: "voicevox", text: String(text).slice(0, 200), speaker: Number(speaker) });
+  voicevoxQueue.push(speaker && typeof speaker === "object"
+    ? { engine: "coeiroink", text: String(text).slice(0, 200), speakerUuid: String(speaker.speakerUuid), styleId: Number(speaker.styleId) }
+    : { engine: "voicevox", text: String(text).slice(0, 200), speaker: Number(speaker) });
   while (voicevoxQueue.length > 2) voicevoxQueue.shift();
   if (voicevoxBusy) return;
   voicevoxBusy = true;
