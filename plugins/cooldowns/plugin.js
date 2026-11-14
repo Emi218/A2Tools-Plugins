@@ -827,6 +827,13 @@ function fillVoices() {
     els.voiceName.append(option);
   }
   if (selected.startsWith("coeiroink:") && ![...els.voiceName.options].some((o) => o.value === selected)) { const option = document.createElement("option"); option.value = selected; option.textContent = "COEIROINK"; els.voiceName.append(option); }
+  if (prefs.coeiroinkStatus) {
+    const status = document.createElement("option");
+    status.value = "coeiroink-status";
+    status.textContent = prefs.coeiroinkStatus;
+    status.disabled = true;
+    els.voiceName.append(status);
+  }
   els.voiceName.value = selected;
 }
 
@@ -1054,9 +1061,15 @@ async function loadVoicevoxSpeakers() {
   } catch (e) { console.info("VOICEVOX is not available:", e?.message || e); }
 }
 async function loadCoeiroinkSpeakers() {
+  prefs.coeiroinkStatus = "COEIROINK: 接続中...";
+  fillVoices();
   try {
+    if (!a2.coeiroink || typeof a2.coeiroink.speakers !== "function") {
+      throw new Error("A2Tools本体のCOEIROINK連携APIが見つかりません。本体の更新が必要です");
+    }
     const speakers = await a2.coeiroink.speakers();
-    const list = (Array.isArray(speakers) ? speakers : []).flatMap((speaker) =>
+    if (!Array.isArray(speakers)) throw new Error("話者一覧の形式が配列ではありません");
+    const list = speakers.flatMap((speaker) =>
       (speaker.styles || []).map((style) => ({
         uuid: String(speaker.speakerUuid || ""),
         styleId: Number(style.styleId),
@@ -1065,13 +1078,14 @@ async function loadCoeiroinkSpeakers() {
       })),
     ).filter((x) => x.uuid && Number.isFinite(x.styleId));
     prefs.coeiroinkSpeakers = list;
-    fillVoices();
+    prefs.coeiroinkStatus = "COEIROINK: " + list.length + "個の声を取得";
     console.info("COEIROINK voices loaded:", list.length, list.slice(0, 3));
-    a2.notify("COEIROINK: " + list.length + "個の声を取得しました").catch(() => {});
   } catch (e) {
+    prefs.coeiroinkSpeakers = [];
+    prefs.coeiroinkStatus = "COEIROINKエラー: " + String(e?.message || e).slice(0, 100);
     console.error("COEIROINK speaker loading failed:", e);
-    a2.notify("COEIROINK接続エラー: " + (e?.message || e)).catch(() => {});
   }
+  fillVoices();
 }
 
 // ---- The meter -------------------------------------------------------------
