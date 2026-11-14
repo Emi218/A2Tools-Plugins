@@ -1056,7 +1056,7 @@ async function loadVoicevoxSpeakers() {
 async function loadCoeiroinkSpeakers() {
   try {
     const speakers = await a2.coeiroink.speakers();
-    prefs.coeiroinkSpeakers = (Array.isArray(speakers) ? speakers : []).flatMap((speaker) =>
+    const list = (Array.isArray(speakers) ? speakers : []).flatMap((speaker) =>
       (speaker.styles || []).map((style) => ({
         uuid: String(speaker.speakerUuid || ""),
         styleId: Number(style.styleId),
@@ -1064,8 +1064,14 @@ async function loadCoeiroinkSpeakers() {
         style: String(style.styleName || ""),
       })),
     ).filter((x) => x.uuid && Number.isFinite(x.styleId));
+    prefs.coeiroinkSpeakers = list;
     fillVoices();
-  } catch (e) { console.info("COEIROINK is not available:", e?.message || e); }
+    console.info("COEIROINK voices loaded:", list.length, list.slice(0, 3));
+    a2.notify("COEIROINK: " + list.length + "個の声を取得しました").catch(() => {});
+  } catch (e) {
+    console.error("COEIROINK speaker loading failed:", e);
+    a2.notify("COEIROINK接続エラー: " + (e?.message || e)).catch(() => {});
+  }
 }
 
 // ---- The meter -------------------------------------------------------------
@@ -1105,7 +1111,7 @@ a2.on("widget-message", ({ data }) => {
   const stored = await a2.storage.get("prefs").catch(() => null);
   if (stored && typeof stored === "object") prefs = { ...DEFAULTS, ...stored };
   await loadVoicevoxSpeakers();
-loadCoeiroinkSpeakers();
+  await loadCoeiroinkSpeakers();
   setSoundVolume(prefs.volume);
   const before = await a2.storage.get(charStoreKey("?")).catch(() => null);
   // Only while no character has come yet: the meter can name one before this
