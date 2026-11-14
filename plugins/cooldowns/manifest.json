@@ -16,7 +16,8 @@
     "decoder:buff-added",
     "decoder:buff-changed",
     "decoder:buff-removed",
-    "voicevox"
+    "voicevox",
+    "coeiroink"
   ],
   "decoders": [
     {
