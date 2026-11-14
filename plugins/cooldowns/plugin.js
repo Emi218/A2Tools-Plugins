@@ -750,7 +750,7 @@ setInterval(() => {
     any = true;
     const o = mine.skills[g];
     if (o?.sound) ding();
-    if (o?.voice) speak(skillName(g) + " Ready", (SKILLS.get(g)?.n?.en || skillName(g)) + " Ready");
+    if (o?.voice) speak(skillName(g) + " レディー", (SKILLS.get(g)?.n?.en || skillName(g)) + " Ready");
   }
   const lead = prefs.lead * 1000;
   for (const [instance, b] of live.buffs) {
