@@ -730,7 +730,7 @@ const ding = () => prefs.sound !== "off" && prefs.volume > 0 && typeof playSound
 const sampleSkill = () => (LISTED[mine.cls] || []).find((s) => mine.skills[s.g]?.show)?.g;
 const sample = () => {
   const g = sampleSkill();
-  return g ? skillName(g) : words.skills;
+  return g ? (String(mine.skills[g]?.speechName || "").trim() || skillName(g)) : words.skills;
 };
 const sampleEn = () => {
   const g = sampleSkill();
@@ -752,7 +752,10 @@ setInterval(() => {
     alerted.add(key);
     any = true;
     if (o?.sound) ding();
-    if (o?.voice) speak(skillName(g) + " レディー", (SKILLS.get(g)?.n?.en || skillName(g)) + " Ready");
+    if (o?.voice) {
+      const spokenName = String(o.speechName || "").trim() || skillName(g);
+      speak(spokenName + " レディー", (SKILLS.get(g)?.n?.en || skillName(g)) + " Ready");
+    }
   }
   const lead = prefs.lead * 1000;
   for (const [instance, b] of live.buffs) {
@@ -888,6 +891,25 @@ function secondsSetting(text, value, change) {
   return label;
 }
 
+function speechNameSetting(value, change) {
+  const label = document.createElement("label");
+  label.className = "opt";
+  label.style.flexWrap = "wrap";
+  const caption = document.createElement("span");
+  caption.textContent = "読み上げ名";
+  const input = document.createElement("input");
+  input.type = "text";
+  input.maxLength = 80;
+  input.placeholder = "空欄なら元のスキル名";
+  input.value = value || "";
+  input.style.width = "min(220px, 100%)";
+  input.addEventListener("click", (e) => e.stopPropagation());
+  input.addEventListener("keydown", (e) => e.stopPropagation());
+  input.addEventListener("change", () => change(input.value.trim()));
+  label.append(caption, input);
+  return label;
+}
+
 // One skill or buff: its icon, name and time, a show switch; a click opens its
 // options under it.
 function row({ id, icon, name, time, timeTitle, shown, onShow, options }) {
@@ -952,6 +974,7 @@ function renderSkills() {
           check(words.optSound, o.sound, (v) => set("sound", v)),
           check(words.optVoice, o.voice, (v) => set("voice", v)),
           secondsSetting("通知タイミング", o.alertLead ?? 1, (v) => set("alertLead", v)),
+          speechNameSetting(o.speechName, (v) => set("speechName", v)),
         ],
       });
     }),
