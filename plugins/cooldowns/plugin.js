@@ -104,7 +104,7 @@ const DEFAULTS = {
   // 0.2.0: how a buff's time left shows ("bar": the green bar and border;
   // "ring": the border drains as a ring, the icon dims as it runs out), the
   // alerts' volume (%) and the voice ("": the first in the meter's language).
-  buffStyle: "bar", volume: 100, voiceName: "",
+  buffStyle: "bar", volume: 100, voiceVolume: 100, voiceName: "",
   // 0.2.1: the Voice list's type ("any", "female", "male": voices.js) and
   // the voice's speed.
   voiceType: "any", voiceRate: 1, voicevoxSpeakers: [], coeiroinkSpeakers: [],
@@ -708,7 +708,7 @@ async function playVoicevox(text, speaker) {
       }
       await voicevoxContext.resume();
       const audio = await voicevoxContext.decodeAudioData(buffer);
-      await new Promise((resolve) => { const source = voicevoxContext.createBufferSource(); source.buffer = audio; source.connect(voicevoxContext.destination); source.onended = resolve; source.start(); });
+      await new Promise((resolve) => { const source = voicevoxContext.createBufferSource(); const gain = voicevoxContext.createGain(); source.buffer = audio; gain.gain.value = Math.max(0, Math.min(100, Number(prefs.voiceVolume ?? 100))) / 100; source.connect(gain); gain.connect(voicevoxContext.destination); source.onended = resolve; source.start(); });
     }
   } catch (e) { console.warn("音声合成:", e); a2.notify("音声合成: " + (e?.message || e)).catch(() => {}); }
   finally { voicevoxBusy = false; }
@@ -784,7 +784,7 @@ const els = {
   layout: $(".layout"), size: $(".size"), direction: $(".direction"), perLine: $(".perLine"), opacity: $(".opacity"),
   numbers: $(".numbers"), readyGlow: $(".readyGlow"), sound: $(".sound"), voice: $(".voice"), lead: $(".lead"),
   combatOnly: $(".combatOnly"), combatAfter: $(".combatAfter"),
-  buffStyle: $(".buffStyle"), skillsShow: $(".skillsShow"), volume: $(".volume"), voiceName: $(".voiceName"),
+  buffStyle: $(".buffStyle"), skillsShow: $(".skillsShow"), volume: $(".volume"), voiceVolume: $(".voiceVolume"), voiceName: $(".voiceName"),
   voiceType: $(".voiceType"), voiceRate: $(".voiceRate"),
 };
 let tab = "skills";
@@ -1057,7 +1057,7 @@ for (const [key, el] of Object.entries(els)) {
     if (key === "perLine") v = Math.max(1, Math.min(20, Math.round(Number(v)) || DEFAULTS.perLine));
     if (key === "lead") v = Math.max(1, Math.min(30, Math.round(Number(v)) || DEFAULTS.lead));
     if (key === "combatAfter") v = Math.max(3, Math.min(120, Math.round(Number(v)) || DEFAULTS.combatAfter));
-    if (key === "opacity" || key === "volume" || key === "voiceRate") v = Number(v);
+    if (key === "opacity" || key === "volume" || key === "voiceVolume" || key === "voiceRate") v = Number(v);
     prefs[key] = v;
     if (el.type === "number") el.value = v;
     save();
@@ -1097,7 +1097,7 @@ $(".testVoice").addEventListener("click", (e) => {
   voicevoxStop();
   say(sample(), sampleEn());
 });
-voice = makeVoices({ lang: () => lang, prefs: () => prefs, onChange: () => fillVoices() });
+voice = makeVoices({ lang: () => lang, prefs: () => ({ ...prefs, volume: prefs.voiceVolume ?? 100 }), onChange: () => fillVoices() });
 fillVoices();
 async function loadVoicevoxSpeakers() {
   try {
