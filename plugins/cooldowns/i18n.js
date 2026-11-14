@@ -46,7 +46,7 @@ const UI = {
     layout: "配置", combined: "1本のバー", split: "スキルとバフを分ける", size: "アイコンの大きさ", small: "小", medium: "中", large: "大", huge: "特大",
     direction: "伸びる方向", right: "右", left: "左", down: "下", up: "上", perLine: "1列のアイコン数", opacity: "不透明度",
     numbers: "残り秒数を表示", combatOnly: "戦闘外は隠す", combatAfter: "スキル未使用で", readyGlow: "使用可能で光る", help: "アイコンは好きな場所にドラッグできます。ダブルクリックでこの画面を開きます。",
-    sound: "サウンド", test: "試聴", none: "なし", voice: "名前を読み上げ", voiceNote: "PCの音声を使い、あればメーターの言語で読み上げます。",
+    sound: "サウンド", test: "試聴", none: "なし", voice: "名前を読み上げ", voiceNote: "PCの音声を使い、あればメーターの言語で読み上げます。", voicevoxNote: "VOICEVOXを使うには、PCでVOICEVOX Engineを起動してください。",
     lead: "バフ終了前の通知", alertNote: "通知するスキルとバフは、各タブで項目をクリックして選びます。",
     optShow: "表示", optAlways: "使用可能でも表示", optSound: "使用可能で音", optVoice: "使用可能で名前を読む",
     optBuffSound: "切れる前に音", optBuffVoice: "切れる前に名前を読む",

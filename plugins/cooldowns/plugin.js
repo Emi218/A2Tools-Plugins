@@ -107,7 +107,7 @@ const DEFAULTS = {
   buffStyle: "bar", volume: 100, voiceName: "",
   // 0.2.1: the Voice list's type ("any", "female", "male": voices.js) and
   // the voice's speed.
-  voiceType: "any", voiceRate: 1,
+  voiceType: "any", voiceRate: 1, voicevoxSpeakers: [],
   // 0.2.12: when a skill's icon shows ("cooling": while on cooldown, unless
   // the skill keeps showing when ready; "ready": while it can be used, its
   // place kept while it cools; "always").
@@ -682,7 +682,35 @@ function changed() {
 // together are all heard but a burst of them never runs on long after.
 let voice = null;
 // `en`: the name in English, the built-in voice's clip (kokoro.js).
-const say = (text, en) => voice?.say(text, en ? [en] : undefined);
+let voicevoxContext = null;
+let voicevoxQueue = [];
+let voicevoxBusy = false;
+const voicevoxStop = () => { voicevoxQueue.length = 0; try { voicevoxContext?.close(); } catch {} voicevoxContext = null; voicevoxBusy = false; };
+async function playVoicevox(text, speaker) {
+  if (!text || !speaker) return;
+  voicevoxQueue.push({ text: String(text).slice(0, 200), speaker: Number(speaker) });
+  while (voicevoxQueue.length > 2) voicevoxQueue.shift();
+  if (voicevoxBusy) return;
+  voicevoxBusy = true;
+  try {
+    while (voicevoxQueue.length) {
+      const item = voicevoxQueue.shift();
+      const bytes = await a2.voicevox.synthesis(item.text, item.speaker);
+      const buffer = Uint8Array.from(bytes).buffer;
+      if (!voicevoxContext || voicevoxContext.state === "closed") {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) throw new Error("Web Audio is unavailable");
+        voicevoxContext = new Ctx();
+      }
+      await voicevoxContext.resume();
+      const audio = await voicevoxContext.decodeAudioData(buffer);
+      await new Promise((resolve) => { const source = voicevoxContext.createBufferSource(); source.buffer = audio; source.connect(voicevoxContext.destination); source.onended = resolve; source.start(); });
+    }
+  } catch (e) { console.warn("VOICEVOX:", e); a2.notify("VOICEVOX: " + (e?.message || e)).catch(() => {}); }
+  finally { voicevoxBusy = false; }
+}
+const voicevoxSpeakerId = () => { const m = /^voicevox:(\d+)$/.exec(String(prefs.voiceName || "")); return m ? Number(m[1]) : 0; };
+const say = (text, en) => { const speaker = voicevoxSpeakerId(); return speaker ? playVoicevox(text, speaker) : voice?.say(text, en ? [en] : undefined); };
 const speak = (text, en) => prefs.voice && say(text, en);
 const ding = () => prefs.sound !== "off" && prefs.volume > 0 && typeof playSound === "function" && playSound(prefs.sound);
 // A name to try a voice on: the first skill shown, or the word "Skills".
@@ -770,6 +798,16 @@ function fillVoices() {
   els.voiceRate.replaceChildren(...VOICE_RATES.map((r) => opt(r, `${r.toLocaleString(lang)}×`)));
   els.voiceRate.value = String(VOICE_RATES.includes(Number(prefs.voiceRate)) ? Number(prefs.voiceRate) : 1);
   voice.fill(els.voiceName, words.voiceDefault);
+  for (const option of [...els.voiceName.options]) if (option.value.startsWith("voicevox:")) option.remove();
+  const selected = String(prefs.voiceName || "");
+  for (const speaker of prefs.voicevoxSpeakers || []) {
+    const option = document.createElement("option");
+    option.value = "voicevox:" + speaker.id;
+    option.textContent = "VOICEVOX · " + speaker.name + "（" + speaker.style + "）";
+    els.voiceName.append(option);
+  }
+  if (selected.startsWith("voicevox:") && ![...els.voiceName.options].some((o) => o.value === selected)) { const option = document.createElement("option"); option.value = selected; option.textContent = "VOICEVOX"; els.voiceName.append(option); }
+  els.voiceName.value = selected;
 }
 
 const seconds = (ms) => {
@@ -981,10 +1019,20 @@ els.volume.addEventListener("change", () => {
 $(".testVoice").addEventListener("click", (e) => {
   e.preventDefault();
   voice?.stop();
+  voicevoxStop();
   say(sample(), sampleEn());
 });
 voice = makeVoices({ lang: () => lang, prefs: () => prefs, onChange: () => fillVoices() });
 fillVoices();
+(async () => {
+  try {
+    const speakers = await a2.voicevox.speakers();
+    prefs.voicevoxSpeakers = (Array.isArray(speakers) ? speakers : []).flatMap((speaker) =>
+      (speaker.styles || []).map((style) => ({ id: Number(style.id), name: String(speaker.name || ""), style: String(style.name || "") })),
+    );
+    fillVoices();
+  } catch (e) { console.info("VOICEVOX is not available:", e?.message || e); }
+})();
 
 // ---- The meter -------------------------------------------------------------
 
