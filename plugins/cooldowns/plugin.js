@@ -754,7 +754,7 @@ setInterval(() => {
     if (o?.sound) ding();
     if (o?.voice) {
       const spokenName = String(o.speechName || "").trim() || skillName(g);
-      speak(spokenName + " レディー", (SKILLS.get(g)?.n?.en || skillName(g)) + " Ready");
+      speak(spokenName, spokenName);
     }
   }
   const lead = prefs.lead * 1000;
@@ -1095,7 +1095,7 @@ $(".testVoice").addEventListener("click", (e) => {
   e.preventDefault();
   voice?.stop();
   voicevoxStop();
-  say(sample() + " レディー", (sampleEn() || sample()) + " Ready");
+  say(sample(), sampleEn());
 });
 voice = makeVoices({ lang: () => lang, prefs: () => prefs, onChange: () => fillVoices() });
 fillVoices();
