@@ -1,7 +1,7 @@
 {
   "id": "cooldowns",
   "name": "Cooldowns",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "apiVersion": 2,
   "author": "A2 Tools",
   "description": "Your skill cooldowns and buffs as icons you place anywhere over the game, with a sound or your skill's name spoken when one is ready.",
@@ -15,27 +15,58 @@
     "decoder:cooldowns",
     "decoder:buff-added",
     "decoder:buff-changed",
-    "decoder:buff-removed"
+    "decoder:buff-removed",
+    "voicevox"
   ],
   "decoders": [
     {
       "name": "skill-used",
       "opcode": "01 38",
       "immediate": true,
-      "fields": [ { "type": "skip:3" }, { "name": "skill", "type": "u32" } ]
+      "fields": [
+        {
+          "type": "skip:3"
+        },
+        {
+          "name": "skill",
+          "type": "u32"
+        }
+      ]
     },
     {
       "name": "skill-released",
       "opcode": "1E 38",
       "immediate": true,
-      "fields": [ { "type": "skip:3" }, { "name": "skill", "type": "u32" } ]
+      "fields": [
+        {
+          "type": "skip:3"
+        },
+        {
+          "name": "skill",
+          "type": "u32"
+        }
+      ]
     },
     {
       "name": "cooldowns",
       "opcode": "47 38",
       "immediate": true,
       "fields": [
-        { "name": "skills", "type": "list", "count": "u8", "fields": [ { "name": "group", "type": "u32" }, { "name": "ms", "type": "varint" } ] }
+        {
+          "name": "skills",
+          "type": "list",
+          "count": "u8",
+          "fields": [
+            {
+              "name": "group",
+              "type": "u32"
+            },
+            {
+              "name": "ms",
+              "type": "varint"
+            }
+          ]
+        }
       ]
     },
     {
@@ -44,10 +75,45 @@
       "self": "entity",
       "immediate": true,
       "fields": [
-        { "name": "entity", "type": "varint" }, { "type": "skip:1" }, { "name": "flags", "type": "u8" },
-        { "name": "instance", "type": "varint" }, { "name": "abnormal", "type": "u32" },
-        { "name": "length", "type": "u64" }, { "name": "end", "type": "u64" },
-        { "name": "caster", "type": "varint" }, { "name": "level", "type": "u8" }, { "name": "skill", "type": "u32" }
+        {
+          "name": "entity",
+          "type": "varint"
+        },
+        {
+          "type": "skip:1"
+        },
+        {
+          "name": "flags",
+          "type": "u8"
+        },
+        {
+          "name": "instance",
+          "type": "varint"
+        },
+        {
+          "name": "abnormal",
+          "type": "u32"
+        },
+        {
+          "name": "length",
+          "type": "u64"
+        },
+        {
+          "name": "end",
+          "type": "u64"
+        },
+        {
+          "name": "caster",
+          "type": "varint"
+        },
+        {
+          "name": "level",
+          "type": "u8"
+        },
+        {
+          "name": "skill",
+          "type": "u32"
+        }
       ]
     },
     {
@@ -56,9 +122,30 @@
       "self": "entity",
       "immediate": true,
       "fields": [
-        { "name": "entity", "type": "varint" }, { "name": "flags", "type": "u8" },
-        { "name": "instance", "type": "varint" }, { "name": "abnormal", "type": "u32" },
-        { "name": "length", "type": "u64" }, { "name": "end", "type": "u64" }
+        {
+          "name": "entity",
+          "type": "varint"
+        },
+        {
+          "name": "flags",
+          "type": "u8"
+        },
+        {
+          "name": "instance",
+          "type": "varint"
+        },
+        {
+          "name": "abnormal",
+          "type": "u32"
+        },
+        {
+          "name": "length",
+          "type": "u64"
+        },
+        {
+          "name": "end",
+          "type": "u64"
+        }
       ]
     },
     {
@@ -67,8 +154,22 @@
       "self": "entity",
       "immediate": true,
       "fields": [
-        { "name": "entity", "type": "varint" }, { "name": "count", "type": "u8" },
-        { "name": "kind", "type": "u8" }, { "name": "instance", "type": "varint" }
+        {
+          "name": "entity",
+          "type": "varint"
+        },
+        {
+          "name": "count",
+          "type": "u8"
+        },
+        {
+          "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "instance",
+          "type": "varint"
+        }
       ]
     }
   ],
