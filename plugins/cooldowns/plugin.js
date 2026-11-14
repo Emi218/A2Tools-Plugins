@@ -1024,7 +1024,7 @@ $(".testVoice").addEventListener("click", (e) => {
 });
 voice = makeVoices({ lang: () => lang, prefs: () => prefs, onChange: () => fillVoices() });
 fillVoices();
-(async () => {
+async function loadVoicevoxSpeakers() {
   try {
     const speakers = await a2.voicevox.speakers();
     prefs.voicevoxSpeakers = (Array.isArray(speakers) ? speakers : []).flatMap((speaker) =>
@@ -1032,7 +1032,7 @@ fillVoices();
     );
     fillVoices();
   } catch (e) { console.info("VOICEVOX is not available:", e?.message || e); }
-})();
+}
 
 // ---- The meter -------------------------------------------------------------
 
@@ -1070,6 +1070,7 @@ a2.on("widget-message", ({ data }) => {
 (async () => {
   const stored = await a2.storage.get("prefs").catch(() => null);
   if (stored && typeof stored === "object") prefs = { ...DEFAULTS, ...stored };
+  await loadVoicevoxSpeakers();
   setSoundVolume(prefs.volume);
   const before = await a2.storage.get(charStoreKey("?")).catch(() => null);
   // Only while no character has come yet: the meter can name one before this
