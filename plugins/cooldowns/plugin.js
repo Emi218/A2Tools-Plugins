@@ -798,6 +798,7 @@ function fillVoices() {
   els.voiceRate.replaceChildren(...VOICE_RATES.map((r) => opt(r, `${r.toLocaleString(lang)}×`)));
   els.voiceRate.value = String(VOICE_RATES.includes(Number(prefs.voiceRate)) ? Number(prefs.voiceRate) : 1);
   voice.fill(els.voiceName, words.voiceDefault);
+  for (const option of [...els.voiceName.options]) if (option.value.startsWith("voicevox:")) option.remove();
   const selected = String(prefs.voiceName || "");
   for (const speaker of prefs.voicevoxSpeakers || []) {
     const option = document.createElement("option");
