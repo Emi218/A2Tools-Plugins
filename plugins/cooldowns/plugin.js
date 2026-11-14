@@ -1047,7 +1047,7 @@ $(".testVoice").addEventListener("click", (e) => {
   e.preventDefault();
   voice?.stop();
   voicevoxStop();
-  say(sample(), sampleEn());
+  say(sample() + " レディー", (sampleEn() || sample()) + " Ready");
 });
 voice = makeVoices({ lang: () => lang, prefs: () => prefs, onChange: () => fillVoices() });
 fillVoices();
