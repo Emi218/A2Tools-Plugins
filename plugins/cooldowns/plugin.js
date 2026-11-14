@@ -743,7 +743,8 @@ setInterval(() => {
   const now = Date.now();
   let any = false;
   for (const [g, c] of live.cd) {
-    if (c.end > now || now - c.end > 3000) continue;
+    // Announce skill cooldowns when one second remains (250ms polling).
+    if (c.end - now > 1000 || now - c.end > 3000) continue;
     const key = `g:${g}:${c.end}`;
     if (alerted.has(key)) continue;
     alerted.add(key);
